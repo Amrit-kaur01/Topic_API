@@ -15,25 +15,27 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.example.TopicProject.entities.Topic;
+import com.example.TopicProject.exception.custom.BusinessException;
+import com.example.TopicProject.services.TopicService;
 import com.example.TopicProject.services.TopicServiceImpl;
 
 @RestController
 public class TopicController {
 
 	@Autowired // used to declare a dependency that spring needs to inject at runtime
-	private TopicServiceImpl topicServiceImpl;
+	private TopicService topicService;
 
 	@GetMapping("/topics")
-	public ResponseEntity<Object> getAllTopics() { // whatever this method returns will automatically be converted to JSON and sent
-										// back as the HTTPResponse since this is a RestController
-		List<Topic> list = topicServiceImpl.getAllTopics();
-		if(list.size()<=0) {
-			return ResponseEntity.status(HttpStatus.NOT_FOUND).body("No topics found");
-		}
-		return ResponseEntity.of(Optional.of(list));
+	public ResponseEntity<List<Topic>> getAllTopics() { // whatever this method returns will
+														// automatically be converted to
+														// JSON and sent
+		// back as the HTTPResponse since this is a RestController
+		List<Topic> list = topicService.getAllTopics();
+		return new ResponseEntity<>(list, HttpStatus.OK);
 		/*
 		 * the generated JSON will have key names corresponding to property names of the
 		 * Topic class The JSON values are the values of those properties
@@ -41,62 +43,39 @@ public class TopicController {
 	}
 
 	@GetMapping("/topics/{id}") // the id inside the curly brackets indicates that it is a variable token and it
-									// can take any value and that value will be passed to the method
-	public ResponseEntity<?> getTopic(@PathVariable String id) {
-		Optional<Topic> topic= topicServiceImpl.getTopic(id);
-		if(!topic.isEmpty())
-			return ResponseEntity.of(topic);   
-		else
-			return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Topic with id "+id+" doesn't exists.");
+								// can take any value and that value will be passed to the method
+	public ResponseEntity<Topic> getTopic(@PathVariable String id) {
+		Topic topic = topicService.getTopic(id);
+		return new ResponseEntity<>(topic, HttpStatus.OK);
 	}
-	
-	@GetMapping("/topics/name/{name}")
-	public ResponseEntity<?> getTopicByName(@PathVariable String name) {
-		Optional<Topic> topic = this.topicServiceImpl.getTopicByName(name);
-		if(topic.isPresent())
-			return ResponseEntity.of(topic);
-		else
-			return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Topic with name "+name+" doesn't exists.");
+
+	@GetMapping("/topic")
+	public ResponseEntity<Topic> getTopicByName(@RequestParam("name") String name) {
+		Topic topic = topicService.getTopicByName(name);
+		return new ResponseEntity<>(topic, HttpStatus.OK);
 
 	}
 
 	@PostMapping("/topics")
-	public ResponseEntity<Topic> addTopic(@RequestBody Topic topic) // @RequestBody converts or maps the HTTPRequest body into a Topic
-													// instance, enabling automatic deserialization
+	public ResponseEntity<Topic> addTopic(@RequestBody Topic topic) // @RequestBody converts or maps the HTTPRequest
+																	// body into a Topic
+																	// instance, enabling automatic deserialization
 	{
-		try {
-			Topic topicUpdated = topicServiceImpl.addTopic(topic);
-			return ResponseEntity.status(HttpStatus.CREATED).body(topicUpdated);
-		}
-		catch (Exception e)
-		{
-			e.printStackTrace();
-			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
-		}
-		
+		Topic topicAdded = topicService.addTopic(topic);
+		return new ResponseEntity<>(topicAdded, HttpStatus.CREATED);
+
 	}
 
 	@PutMapping("/topics/{id}")
 	public ResponseEntity<Topic> updateTopic(@RequestBody Topic topic, @PathVariable String id) {
-		try {
-			Topic topicUpdated = this.topicServiceImpl.updateTopic(id, topic);
-			return ResponseEntity.ok().body(topicUpdated);
-		}
-		catch(Exception e) {
-			e.printStackTrace();
-			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
-		}
+		Topic topicUpdated = topicService.updateTopic(id, topic);
+		return new ResponseEntity<>(topicUpdated, HttpStatus.OK);
+
 	}
 
 	@DeleteMapping("/topics/{id}")
 	public ResponseEntity<Object> deleteTopic(@PathVariable String id) {
-		try {
-			this.topicServiceImpl.deleteTopic(id);
-			return ResponseEntity.status(HttpStatus.OK).body("Topic with id "+id+" deleted successfully");
-		}
-		catch(Exception e) {
-			e.printStackTrace();
-			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
-		}
+		topicService.deleteTopic(id);
+		return new ResponseEntity<>("Topic with id " + id + " deleted successfully", HttpStatus.ACCEPTED);
 	}
 }

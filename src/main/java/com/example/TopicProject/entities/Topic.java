@@ -12,29 +12,29 @@ import jakarta.persistence.Table;
 public class Topic {
 
 	@Id
-	//@GeneratedValue(strategy = GenerationType.AUTO)
-	private String id;
-	
+	@GeneratedValue(strategy = GenerationType.SEQUENCE)
+	private int id;
+
 	@Column(nullable = false, name = "topicName")
 	private String name;
 	private String description;
-	
+
 	public Topic() {
-		
+
 	}
-	
-	public Topic(String id, String name, String description) {
+
+	public Topic(int id, String name, String description) {
 		super();
 		this.id = id;
 		this.name = name;
 		this.description = description;
 	}
 
-	public String getId() {
+	public int getId() {
 		return id;
 	}
 
-	public void setId(String id) {
+	public void setId(int id) {
 		this.id = id;
 	}
 
@@ -53,7 +53,5 @@ public class Topic {
 	public void setDescription(String description) {
 		this.description = description;
 	}
-
-	
 
 }
